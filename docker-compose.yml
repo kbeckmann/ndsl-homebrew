@@ -1,0 +1,24 @@
+services:
+  nds-build:
+    image: devkitpro/devkitarm:latest
+    volumes:
+      - .:/nds
+    working_dir: /nds
+    command: make
+    environment:
+      - DEVKITARM=/opt/devkitpro/devkitARM
+      - DEVKITPRO=/opt/devkitpro
+    tty: true
+    stdin_open: true
+
+  nds-dev:
+    image: devkitpro/devkitarm:latest
+    volumes:
+      - .:/nds
+    working_dir: /nds
+    command: /bin/bash
+    environment:
+      - DEVKITARM=/opt/devkitpro/devkitARM
+      - DEVKITPRO=/opt/devkitpro
+    tty: true
+    stdin_open: true

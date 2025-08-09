@@ -1,0 +1,145 @@
+#include <nds.h>
+#include <gl2d.h>
+#include <stdio.h>
+
+#define HALF_WIDTH (SCREEN_WIDTH/2)
+#define HALF_HEIGHT (SCREEN_HEIGHT/2)
+#define BRAD_PI (1 << 14)
+
+typedef enum pattern_e
+{
+	PATTERN_BLACK,
+	PATTERN_RED,
+	PATTERN_GRADIENT,
+	PATTERN_STRIPE,
+
+	PATTERN_COUNT,
+} pattern_t;
+
+int main(void)
+{
+	touchPosition touch = {0};
+	touchPosition lastTouch = {0};
+	PrintConsole bottomScreen;
+
+	// Set mode 0, enable BG0 and set it to 3D
+	videoSetMode(MODE_0_3D);
+
+	// Bottom screen
+	videoSetModeSub(MODE_0_2D);
+	vramSetBankC(VRAM_C_SUB_BG);
+	consoleInit(&bottomScreen, 3,BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
+	consoleSelect(&bottomScreen);
+
+	// Initialize gl
+	glInit();
+
+	// Enable antialiasing
+	glEnable(GL_ANTIALIAS);
+
+	// Setup the rear plane
+	glClearColor(0, 63, 0, 31); // BG must be opaque for AA to work
+	glClearPolyID(63); // BG must have a unique polygon ID for AA to work
+	glClearDepth(0x7FFF);
+
+	// This should work the same as the normal gl call
+	glViewport(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
+
+	unsigned frame = 0;
+	unsigned pattern = 0;
+	while(pmMainLoop())
+	{
+		touchRead(&touch);
+
+		if ((touch.px != lastTouch.px) || (touch.py != lastTouch.py))
+		{
+			if (touch.px == 0 && touch.py == 0)
+			{
+				// Release
+				pattern = (pattern + 1) % PATTERN_COUNT;
+			}
+		}
+
+		lastTouch = touch;
+
+		iprintf("\x1b[10;0HTouch x = %04i, %04i\n", touch.rawx, touch.px);
+		iprintf("Touch y = %04i, %04i\n", touch.rawy, touch.py);
+		iprintf("Frame = %d\n", frame);
+		iprintf("Pattern = %d\n", pattern);
+
+		frame++;
+
+		// This sets up glortho etc so we can easily draw each pixel on the screen
+		glBegin2D();
+
+		switch (pattern)
+		{
+			case PATTERN_BLACK:
+			{
+				// Black
+				glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+										RGB15( 0, 0, 0 ),
+										RGB15( 0, 0, 0 ),
+										RGB15( 0, 0, 0 ),
+										RGB15( 0, 0, 0 )
+									);
+				break;
+			}
+
+			case PATTERN_RED:
+			{
+				// Red
+				glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+										RGB15( 31, 0, 0 ),
+										RGB15( 31, 0, 0 ),
+										RGB15( 31, 0, 0 ),
+										RGB15( 31, 0, 0 )
+									);
+				break;
+			}
+
+			case PATTERN_GRADIENT:
+			{
+				// Gradient Red to Black, left->right
+				// Fill all of the 256 x 192 pixels.
+				// Output is RGB666, but we define colors in RGB555.
+				// 31 = UINT5_MAX
+				glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+										RGB15( 31, 0, 0 ),
+										RGB15( 31, 0, 0 ),
+										RGB15( 0, 0, 0 ),
+										RGB15( 0, 0, 0 )
+									);
+				break;
+			}
+
+			case PATTERN_STRIPE:
+			{
+				// Striped pattern, every second pixel is black.
+				for (int i = 0; i < SCREEN_WIDTH; i++)
+				{
+					unsigned col = (i % 2) ? RGB15(31, 0, 0) : 0;
+
+					glBoxFilledGradient( i, 0, i + 1, SCREEN_HEIGHT - 1,
+											col,
+											col,
+											col,
+											col
+										);
+				}
+				break;
+			}
+
+			default:
+				break;
+		}
+
+		glEnd2D();
+
+		glFlush(0);
+
+		swiWaitForVBlank();
+	}
+
+	return 0;
+}
