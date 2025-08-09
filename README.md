@@ -3,12 +3,15 @@
 Various small test projects to generate graphics for testing.
 
 ```
+export UID=$(id -u)
+export GID=$(id -g)
+
 # Start a docker shell that lets you run `make`:
-docker-compose run nds-dev
+docker-compose run --rm nds-dev
 
 # Build all projects
-docker-compose run nds-build
+docker-compose run --rm nds-build
 
 # Run make clean
-docker-compose run nds-build make clean
+docker-compose run --rm nds-build make clean
 ```

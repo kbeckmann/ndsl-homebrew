@@ -10,8 +10,10 @@ typedef enum pattern_e
 {
 	PATTERN_BLACK,
 	PATTERN_RED,
-	PATTERN_GRADIENT,
-	PATTERN_STRIPE,
+	PATTERN_GRADIENT_HORIZONTAL,
+	PATTERN_GRADIENT_VERTICAL,
+	PATTERN_STRIPE_2X,
+	PATTERN_STRIPE_4X,
 
 	PATTERN_COUNT,
 } pattern_t;
@@ -98,7 +100,7 @@ int main(void)
 				break;
 			}
 
-			case PATTERN_GRADIENT:
+			case PATTERN_GRADIENT_HORIZONTAL:
 			{
 				// Gradient Red to Black, left->right
 				// Fill all of the 256 x 192 pixels.
@@ -113,12 +115,52 @@ int main(void)
 				break;
 			}
 
-			case PATTERN_STRIPE:
+			case PATTERN_GRADIENT_VERTICAL:
+			{
+				// Gradient Red to Black, left->right
+				// Fill all of the 256 x 192 pixels.
+				// Output is RGB666, but we define colors in RGB555.
+				// 31 = UINT5_MAX
+				glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+										RGB15( 31, 0, 0 ),
+										RGB15( 0, 0, 0 ),
+										RGB15( 0, 0, 0 ),
+										RGB15( 31, 0, 0 )
+									);
+				break;
+			}
+
+			case PATTERN_STRIPE_2X:
 			{
 				// Striped pattern, every second pixel is black.
 				for (int i = 0; i < SCREEN_WIDTH; i++)
 				{
-					unsigned col = (i % 2) ? RGB15(31, 0, 0) : 0;
+					unsigned col = 0;
+					if ((i & 0b1) == 0)
+					{
+						col = RGB15(31, 0, 0);
+					}
+
+					glBoxFilledGradient( i, 0, i + 1, SCREEN_HEIGHT - 1,
+											col,
+											col,
+											col,
+											col
+										);
+				}
+				break;
+			}
+
+			case PATTERN_STRIPE_4X:
+			{
+				// Striped pattern, every second pixel is black.
+				for (unsigned i = 0; i < SCREEN_WIDTH; i++)
+				{
+					unsigned col = 0;
+					if ((i & 0b11) <= 0b01)
+					{
+						col = RGB15(31, 0, 0);
+					}
 
 					glBoxFilledGradient( i, 0, i + 1, SCREEN_HEIGHT - 1,
 											col,
