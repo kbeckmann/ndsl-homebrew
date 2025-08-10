@@ -179,7 +179,7 @@ int main(void)
 
         case PATTERN_STRIPE_4X:
         {
-            // Striped pattern, every second pixel is black.
+            // Striped pattern, 2 pixel wide stripes
             for (unsigned i = 0; i < SCREEN_WIDTH; i++)
             {
                 int col_stripe = 0;
