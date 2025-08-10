@@ -17,12 +17,11 @@ typedef enum pattern_e
     PATTERN_COUNT,
 } pattern_t;
 
-
-bool inside_rect(touchPosition p, unsigned x, unsigned y, unsigned width, unsigned height) {
+bool inside_rect(touchPosition p, unsigned x, unsigned y, unsigned width, unsigned height)
+{
     return (p.px >= x) && (p.px < x + width) &&
            (p.py >= y) && (p.py < y + height);
 }
-
 
 int main(void)
 {
@@ -36,7 +35,7 @@ int main(void)
     // Bottom screen
     videoSetModeSub(MODE_0_2D);
     vramSetBankC(VRAM_C_SUB_BG);
-    consoleInit(&bottomScreen, 3,BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
+    consoleInit(&bottomScreen, 3, BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
     consoleSelect(&bottomScreen);
 
     // Initialize gl
@@ -47,7 +46,7 @@ int main(void)
 
     // Setup the rear plane
     glClearColor(0, 63, 0, 31); // BG must be opaque for AA to work
-    glClearPolyID(63); // BG must have a unique polygon ID for AA to work
+    glClearPolyID(63);          // BG must have a unique polygon ID for AA to work
     glClearDepth(0x7FFF);
 
     // This should work the same as the normal gl call
@@ -59,7 +58,7 @@ int main(void)
     uint32_t col_g = 0;
     uint32_t col_b = 0;
 
-    while(pmMainLoop())
+    while (pmMainLoop())
     {
         touchRead(&touch);
 
@@ -80,11 +79,11 @@ int main(void)
             }
             if (inside_rect(touch, 150, 0, 50, SCREEN_HEIGHT))
             {
-                col_g = CLAMP((touch.py - 32) / 4, 0, 31);;
+                col_g = CLAMP((touch.py - 32) / 4, 0, 31);
             }
             if (inside_rect(touch, 200, 0, 50, SCREEN_HEIGHT))
             {
-                col_b = CLAMP((touch.py - 32) / 4, 0, 31);;
+                col_b = CLAMP((touch.py - 32) / 4, 0, 31);
             }
         }
 
@@ -104,108 +103,102 @@ int main(void)
         // This sets up glortho etc so we can easily draw each pixel on the screen
         glBegin2D();
 
-        int col = RGB15( col_r, col_g, col_b );
+        int col = RGB15(col_r, col_g, col_b);
 
         switch (pattern)
         {
-            case PATTERN_BLACK:
-            {
-                // Black
-                glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
-                                        RGB15( 0, 0, 0 ),
-                                        RGB15( 0, 0, 0 ),
-                                        RGB15( 0, 0, 0 ),
-                                        RGB15( 0, 0, 0 )
-                                    );
-                break;
-            }
+        case PATTERN_BLACK:
+        {
+            // Black
+            glBoxFilledGradient(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+                                RGB15(0, 0, 0),
+                                RGB15(0, 0, 0),
+                                RGB15(0, 0, 0),
+                                RGB15(0, 0, 0));
+            break;
+        }
 
-            case PATTERN_RED:
-            {
-                // Red
-                glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
-                                        col,
-                                        col,
-                                        col,
-                                        col
-                                    );
-                break;
-            }
+        case PATTERN_RED:
+        {
+            // Red
+            glBoxFilledGradient(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+                                col,
+                                col,
+                                col,
+                                col);
+            break;
+        }
 
-            case PATTERN_GRADIENT_HORIZONTAL:
-            {
-                // Gradient Red to Black, left->right
-                // Fill all of the 256 x 192 pixels.
-                // Output is RGB666, but we define colors in RGB555.
-                // 31 = UINT5_MAX
-                glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
-                                        col,
-                                        col,
-                                        RGB15( 0, 0, 0 ),
-                                        RGB15( 0, 0, 0 )
-                                    );
-                break;
-            }
+        case PATTERN_GRADIENT_HORIZONTAL:
+        {
+            // Gradient Red to Black, left->right
+            // Fill all of the 256 x 192 pixels.
+            // Output is RGB666, but we define colors in RGB555.
+            // 31 = UINT5_MAX
+            glBoxFilledGradient(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+                                col,
+                                col,
+                                RGB15(0, 0, 0),
+                                RGB15(0, 0, 0));
+            break;
+        }
 
-            case PATTERN_GRADIENT_VERTICAL:
-            {
-                // Gradient Red to Black, left->right
-                // Fill all of the 256 x 192 pixels.
-                // Output is RGB666, but we define colors in RGB555.
-                // 31 = UINT5_MAX
-                glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
-                                        col,
-                                        RGB15( 0, 0, 0 ),
-                                        RGB15( 0, 0, 0 ),
-                                        col
-                                    );
-                break;
-            }
+        case PATTERN_GRADIENT_VERTICAL:
+        {
+            // Gradient Red to Black, left->right
+            // Fill all of the 256 x 192 pixels.
+            // Output is RGB666, but we define colors in RGB555.
+            // 31 = UINT5_MAX
+            glBoxFilledGradient(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+                                col,
+                                RGB15(0, 0, 0),
+                                RGB15(0, 0, 0),
+                                col);
+            break;
+        }
 
-            case PATTERN_STRIPE_2X:
+        case PATTERN_STRIPE_2X:
+        {
+            // Striped pattern, every second pixel is black.
+            for (int i = 0; i < SCREEN_WIDTH; i++)
             {
-                // Striped pattern, every second pixel is black.
-                for (int i = 0; i < SCREEN_WIDTH; i++)
+                int col_stripe = 0;
+                if ((i & 0b1) == 0)
                 {
-                    int col_stripe = 0;
-                    if ((i & 0b1) == 0)
-                    {
-                        col_stripe = col;
-                    }
-
-                    glBoxFilledGradient( i, 0, i + 1, SCREEN_HEIGHT - 1,
-                                            col_stripe,
-                                            col_stripe,
-                                            col_stripe,
-                                            col_stripe
-                                        );
+                    col_stripe = col;
                 }
-                break;
-            }
 
-            case PATTERN_STRIPE_4X:
+                glBoxFilledGradient(i, 0, i + 1, SCREEN_HEIGHT - 1,
+                                    col_stripe,
+                                    col_stripe,
+                                    col_stripe,
+                                    col_stripe);
+            }
+            break;
+        }
+
+        case PATTERN_STRIPE_4X:
+        {
+            // Striped pattern, every second pixel is black.
+            for (unsigned i = 0; i < SCREEN_WIDTH; i++)
             {
-                // Striped pattern, every second pixel is black.
-                for (unsigned i = 0; i < SCREEN_WIDTH; i++)
+                int col_stripe = 0;
+                if ((i & 0b11) <= 0b01)
                 {
-                    int col_stripe = 0;
-                    if ((i & 0b11) <= 0b01)
-                    {
-                        col_stripe = col;
-                    }
-
-                    glBoxFilledGradient( i, 0, i + 1, SCREEN_HEIGHT - 1,
-                                            col_stripe,
-                                            col_stripe,
-                                            col_stripe,
-                                            col_stripe
-                                        );
+                    col_stripe = col;
                 }
-                break;
-            }
 
-            default:
-                break;
+                glBoxFilledGradient(i, 0, i + 1, SCREEN_HEIGHT - 1,
+                                    col_stripe,
+                                    col_stripe,
+                                    col_stripe,
+                                    col_stripe);
+            }
+            break;
+        }
+
+        default:
+            break;
         }
 
         glEnd2D();
