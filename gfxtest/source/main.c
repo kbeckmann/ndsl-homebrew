@@ -1,10 +1,9 @@
 #include <nds.h>
 #include <gl2d.h>
 #include <stdio.h>
+#include <stdbool.h>
 
-#define HALF_WIDTH (SCREEN_WIDTH/2)
-#define HALF_HEIGHT (SCREEN_HEIGHT/2)
-#define BRAD_PI (1 << 14)
+#define CLAMP(val, min, max) (((val) < (min)) ? (min) : (((val) > (max)) ? (max) : (val)))
 
 typedef enum pattern_e
 {
@@ -17,6 +16,13 @@ typedef enum pattern_e
 
     PATTERN_COUNT,
 } pattern_t;
+
+
+bool inside_rect(touchPosition p, unsigned x, unsigned y, unsigned width, unsigned height) {
+    return (p.px >= x) && (p.px < x + width) &&
+           (p.py >= y) && (p.py < y + height);
+}
+
 
 int main(void)
 {
@@ -47,8 +53,12 @@ int main(void)
     // This should work the same as the normal gl call
     glViewport(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
 
-    unsigned frame = 0;
-    unsigned pattern = 0;
+    uint32_t frame = 0;
+    uint32_t pattern = 0;
+    uint32_t col_r = 31;
+    uint32_t col_g = 0;
+    uint32_t col_b = 0;
+
     while(pmMainLoop())
     {
         touchRead(&touch);
@@ -58,21 +68,43 @@ int main(void)
             if (touch.px == 0 && touch.py == 0)
             {
                 // Release
-                pattern = (pattern + 1) % PATTERN_COUNT;
+                if (inside_rect(lastTouch, 0, 0, 100, SCREEN_HEIGHT))
+                {
+                    pattern = (pattern + 1) % PATTERN_COUNT;
+                }
+            }
+
+            if (inside_rect(touch, 100, 0, 50, SCREEN_HEIGHT))
+            {
+                col_r = CLAMP((touch.py - 32) / 4, 0, 31);
+            }
+            if (inside_rect(touch, 150, 0, 50, SCREEN_HEIGHT))
+            {
+                col_g = CLAMP((touch.py - 32) / 4, 0, 31);;
+            }
+            if (inside_rect(touch, 200, 0, 50, SCREEN_HEIGHT))
+            {
+                col_b = CLAMP((touch.py - 32) / 4, 0, 31);;
             }
         }
 
         lastTouch = touch;
 
-        iprintf("\x1b[10;0HTouch x = %04i, %04i\n", touch.rawx, touch.px);
-        iprintf("Touch y = %04i, %04i\n", touch.rawy, touch.py);
-        iprintf("Frame = %d\n", frame);
-        iprintf("Pattern = %d\n", pattern);
+        consoleClear();
+        iprintf("               R    G    B\n\n");
+        iprintf("Frame = %ld\n", frame);
+        iprintf("(%04i, %04i)\n", touch.px, touch.py);
+        iprintf("Pattern = %ld\n", pattern);
+        iprintf("R = %02lu\n", col_r);
+        iprintf("G = %02lu\n", col_g);
+        iprintf("B = %02lu\n", col_b);
 
         frame++;
 
         // This sets up glortho etc so we can easily draw each pixel on the screen
         glBegin2D();
+
+        int col = RGB15( col_r, col_g, col_b );
 
         switch (pattern)
         {
@@ -92,10 +124,10 @@ int main(void)
             {
                 // Red
                 glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
-                                        RGB15( 31, 0, 0 ),
-                                        RGB15( 31, 0, 0 ),
-                                        RGB15( 31, 0, 0 ),
-                                        RGB15( 31, 0, 0 )
+                                        col,
+                                        col,
+                                        col,
+                                        col
                                     );
                 break;
             }
@@ -107,8 +139,8 @@ int main(void)
                 // Output is RGB666, but we define colors in RGB555.
                 // 31 = UINT5_MAX
                 glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
-                                        RGB15( 31, 0, 0 ),
-                                        RGB15( 31, 0, 0 ),
+                                        col,
+                                        col,
                                         RGB15( 0, 0, 0 ),
                                         RGB15( 0, 0, 0 )
                                     );
@@ -122,10 +154,10 @@ int main(void)
                 // Output is RGB666, but we define colors in RGB555.
                 // 31 = UINT5_MAX
                 glBoxFilledGradient( 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
-                                        RGB15( 31, 0, 0 ),
+                                        col,
                                         RGB15( 0, 0, 0 ),
                                         RGB15( 0, 0, 0 ),
-                                        RGB15( 31, 0, 0 )
+                                        col
                                     );
                 break;
             }
@@ -135,17 +167,17 @@ int main(void)
                 // Striped pattern, every second pixel is black.
                 for (int i = 0; i < SCREEN_WIDTH; i++)
                 {
-                    unsigned col = 0;
+                    int col_stripe = 0;
                     if ((i & 0b1) == 0)
                     {
-                        col = RGB15(31, 0, 0);
+                        col_stripe = col;
                     }
 
                     glBoxFilledGradient( i, 0, i + 1, SCREEN_HEIGHT - 1,
-                                            col,
-                                            col,
-                                            col,
-                                            col
+                                            col_stripe,
+                                            col_stripe,
+                                            col_stripe,
+                                            col_stripe
                                         );
                 }
                 break;
@@ -156,17 +188,17 @@ int main(void)
                 // Striped pattern, every second pixel is black.
                 for (unsigned i = 0; i < SCREEN_WIDTH; i++)
                 {
-                    unsigned col = 0;
+                    int col_stripe = 0;
                     if ((i & 0b11) <= 0b01)
                     {
-                        col = RGB15(31, 0, 0);
+                        col_stripe = col;
                     }
 
                     glBoxFilledGradient( i, 0, i + 1, SCREEN_HEIGHT - 1,
-                                            col,
-                                            col,
-                                            col,
-                                            col
+                                            col_stripe,
+                                            col_stripe,
+                                            col_stripe,
+                                            col_stripe
                                         );
                 }
                 break;
