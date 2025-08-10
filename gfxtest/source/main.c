@@ -11,8 +11,8 @@ typedef enum pattern_e
     PATTERN_SOLID,
     PATTERN_GRADIENT_HORIZONTAL,
     PATTERN_GRADIENT_VERTICAL,
-    PATTERN_STRIPE_2X,
-    PATTERN_STRIPE_4X,
+    PATTERN_STRIPE_1PX,
+    PATTERN_STRIPE_2PX,
 
     PATTERN_COUNT,
 } pattern_t;
@@ -23,8 +23,8 @@ static const char * pattern_names[PATTERN_COUNT] =
     [PATTERN_SOLID] = "SOLID",
     [PATTERN_GRADIENT_HORIZONTAL] = "GRADIENT_HORIZONTAL",
     [PATTERN_GRADIENT_VERTICAL] = "GRADIENT_VERTICAL",
-    [PATTERN_STRIPE_2X] = "STRIPE_2X",
-    [PATTERN_STRIPE_4X] = "STRIPE_4X",
+    [PATTERN_STRIPE_1PX] = "STRIPE_1PX",
+    [PATTERN_STRIPE_2PX] = "STRIPE_2PX",
 };
 
 bool inside_rect(touchPosition p, unsigned x, unsigned y, unsigned width, unsigned height)
@@ -155,7 +155,7 @@ int main(void)
 
         case PATTERN_GRADIENT_VERTICAL:
         {
-            // Gradient Red to Black, left->right
+            // Gradient Red to Black, top->bottom
             // Fill all of the 256 x 192 pixels.
             // Output is RGB666, but we define colors in RGB555.
             // 31 = UINT5_MAX
@@ -167,9 +167,9 @@ int main(void)
             break;
         }
 
-        case PATTERN_STRIPE_2X:
+        case PATTERN_STRIPE_1PX:
         {
-            // Striped pattern, every second pixel is black.
+            // Vertical stripes, 1 pixel wide stripes
             for (int i = 0; i < SCREEN_WIDTH; i++)
             {
                 int col_stripe = 0;
@@ -187,9 +187,9 @@ int main(void)
             break;
         }
 
-        case PATTERN_STRIPE_4X:
+        case PATTERN_STRIPE_2PX:
         {
-            // Striped pattern, 2 pixel wide stripes
+            // Vertical stripes, 2 pixel wide stripes
             for (unsigned i = 0; i < SCREEN_WIDTH; i++)
             {
                 int col_stripe = 0;
