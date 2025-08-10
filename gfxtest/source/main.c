@@ -8,7 +8,7 @@
 typedef enum pattern_e
 {
     PATTERN_BLACK,
-    PATTERN_RED,
+    PATTERN_SOLID,
     PATTERN_GRADIENT_HORIZONTAL,
     PATTERN_GRADIENT_VERTICAL,
     PATTERN_STRIPE_2X,
@@ -16,6 +16,16 @@ typedef enum pattern_e
 
     PATTERN_COUNT,
 } pattern_t;
+
+static const char * pattern_names[PATTERN_COUNT] = 
+{
+    [PATTERN_BLACK] = "BLACK",
+    [PATTERN_SOLID] = "SOLID",
+    [PATTERN_GRADIENT_HORIZONTAL] = "GRADIENT_HORIZONTAL",
+    [PATTERN_GRADIENT_VERTICAL] = "GRADIENT_VERTICAL",
+    [PATTERN_STRIPE_2X] = "STRIPE_2X",
+    [PATTERN_STRIPE_4X] = "STRIPE_4X",
+};
 
 bool inside_rect(touchPosition p, unsigned x, unsigned y, unsigned width, unsigned height)
 {
@@ -93,7 +103,7 @@ int main(void)
         iprintf("               R    G    B\n\n");
         iprintf("Frame = %ld\n", frame);
         iprintf("(%04i, %04i)\n", touch.px, touch.py);
-        iprintf("Pattern = %ld\n", pattern);
+        iprintf("Pattern %ld, %s\n", pattern, pattern_names[pattern]);
         iprintf("R = %02lu\n", col_r);
         iprintf("G = %02lu\n", col_g);
         iprintf("B = %02lu\n", col_b);
@@ -118,7 +128,7 @@ int main(void)
             break;
         }
 
-        case PATTERN_RED:
+        case PATTERN_SOLID:
         {
             // Red
             glBoxFilledGradient(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
